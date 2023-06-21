@@ -28,10 +28,10 @@ namespace MinimalChatApplicationAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("ReceiverIdUserId")
+                    b.Property<Guid?>("ReceiverId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("SenderIdUserId")
+                    b.Property<Guid?>("SenderId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("TextMessage")
@@ -42,9 +42,9 @@ namespace MinimalChatApplicationAPI.Migrations
 
                     b.HasKey("MessageId");
 
-                    b.HasIndex("ReceiverIdUserId");
+                    b.HasIndex("ReceiverId");
 
-                    b.HasIndex("SenderIdUserId");
+                    b.HasIndex("SenderId");
 
                     b.ToTable("Messages");
                 });
@@ -74,17 +74,24 @@ namespace MinimalChatApplicationAPI.Migrations
 
             modelBuilder.Entity("MinimalChatApplicationAPI.Model.Message", b =>
                 {
-                    b.HasOne("MinimalChatApplicationAPI.Model.User", "ReceiverId")
-                        .WithMany()
-                        .HasForeignKey("ReceiverIdUserId");
+                    b.HasOne("MinimalChatApplicationAPI.Model.User", "User2")
+                        .WithMany("ReceivedMessage")
+                        .HasForeignKey("ReceiverId");
 
-                    b.HasOne("MinimalChatApplicationAPI.Model.User", "SenderId")
-                        .WithMany()
-                        .HasForeignKey("SenderIdUserId");
+                    b.HasOne("MinimalChatApplicationAPI.Model.User", "User1")
+                        .WithMany("SentMessage")
+                        .HasForeignKey("SenderId");
 
-                    b.Navigation("ReceiverId");
+                    b.Navigation("User1");
 
-                    b.Navigation("SenderId");
+                    b.Navigation("User2");
+                });
+
+            modelBuilder.Entity("MinimalChatApplicationAPI.Model.User", b =>
+                {
+                    b.Navigation("ReceivedMessage");
+
+                    b.Navigation("SentMessage");
                 });
 #pragma warning restore 612, 618
         }

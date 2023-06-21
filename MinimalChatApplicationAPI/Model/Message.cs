@@ -10,9 +10,15 @@ namespace MinimalChatApplicationAPI.Model
     {
         [DefaultValue("newid()")]
         public Guid MessageId { get; set; }
-        public virtual User? SenderId { get; set; }
-        public virtual User? ReceiverId { get; set; }
+
+        public Guid? SenderId { get; set; }
+        public User? User1 { get; set; }
+
+        public Guid? ReceiverId { get; set; }
+        public User? User2 { get; set; }
+
         public string? TextMessage { get; set; }
+
         public DateTime TimeStamp { get; set; }
     }
 }

@@ -4,9 +4,9 @@ using Microsoft.IdentityModel.Tokens;
 using MinimalChatApplicationAPI.CustomExceptions;
 using MinimalChatApplicationAPI.Data;
 using MinimalChatApplicationAPI.Dto;
-using MinimalChatApplicationAPI.Helpers;
 using MinimalChatApplicationAPI.Model;
 using MinimalChatApplicationAPI.Utils;
+using MinimalChatApplicationAPI.Utils.Helpers;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -26,23 +26,31 @@ namespace MinimalChatApplicationAPI.Service
             _configuration = configuration;
         }
 
-        public async Task<List<ResUserRegistrationDto>?> GetUsersAsync()
+        public async Task<List<ResUserRegistrationDto>?> GetUsersAsync(string userID)
         {
-            List<User> userList = await _context.Users.ToListAsync();            
-            if (userList.IsListNullOrEmpty())
+            User? user = await _context.Users.FindAsync(userID);
+            if (user != null)
             {
-                return null;
+                List<User> userList = await _context.Users.ToListAsync();
+                if (userList.IsListNullOrEmpty())
+                {
+                    throw new NoContentException("List is Empty");
+                }
+                else
+                {
+                    var userDto = _mapper.Map<List<ResUserRegistrationDto>>(userList);
+                    return userDto;
+                }                
             }
             else
             {
-                var userDto = _mapper.Map<List<ResUserRegistrationDto>>(userList);
-                return userDto;
+                throw new UnauthorizedException("Unauthorized Access");
             }
         }
 
         public async Task<ResUserRegistrationDto?> UpsertUser(UserRegistrationDto userDto)
         {
-            var isEmailExist = await _context.Users.FirstAsync(x => x.Email == userDto.Email);
+            var isEmailExist = await _context.Users.FirstOrDefaultAsync(x => x.Email == userDto.Email);
             if (isEmailExist == null)
             {
                 string passwordHash = BCrypt.Net.BCrypt.HashPassword(userDto.Password);
@@ -68,14 +76,13 @@ namespace MinimalChatApplicationAPI.Service
             }
             if (user == null && (!BCrypt.Net.BCrypt.Verify(userLoginDto.Password, user!.Password)))
             {
-                throw new UnauthorizedException("Access Unauthorize");
+                throw new UnauthorizedException("Unauthorized Access");
             }
             var mapUser = _mapper.Map<ResUserRegistrationDto>(user);
             string token = CreateToken(mapUser);
             resUser.Token = token;
             resUser.User = mapUser;
             return resUser;
-
         }
 
         private string CreateToken(ResUserRegistrationDto resUserRegistrationDto)

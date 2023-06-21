@@ -11,6 +11,9 @@ namespace MinimalChatApplicationAPI.AutoMapperConfig
             CreateMap<User, UserRegistrationDto>().ReverseMap();
             CreateMap<User, ResUserLoginDto>().ReverseMap();
             CreateMap<User, ResUserRegistrationDto>().ReverseMap();
+            CreateMap<Message, MessageDto>().ReverseMap();
+            CreateMap<Message, ResMessageDto>().ReverseMap();
+            CreateMap<Message, EditMessageDto>().ReverseMap();
         }
     }
 }

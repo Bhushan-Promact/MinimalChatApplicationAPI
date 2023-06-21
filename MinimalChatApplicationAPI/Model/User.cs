@@ -14,7 +14,10 @@ namespace MinimalChatApplicationAPI.Model
         public string Name { get; set; } = string.Empty;
 
         public string Email { get; set; } = string.Empty;
-        
+
         public string Password { get; set; } = string.Empty;
+
+        public List<Message>? SentMessage { get; set; }
+        public List<Message>? ReceivedMessage { get; set; }
     }
 }

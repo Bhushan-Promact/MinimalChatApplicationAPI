@@ -61,6 +61,7 @@ builder.Services.AddSwaggerGen(option =>
 });
 
 builder.Services.AddTransient<IUserService, UserService>();
+builder.Services.AddTransient<IMessageService, MessageService>();
 
 builder.Services.AddDbContext<DataContext>(options => options.UseNpgsql(_config.GetConnectionString("DataConnection")));
 builder.Services.AddAutoMapper(typeof(AutoMapperConfig));

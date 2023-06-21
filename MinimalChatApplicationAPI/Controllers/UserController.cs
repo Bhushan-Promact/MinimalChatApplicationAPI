@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using MinimalChatApplicationAPI.CustomExceptions;
 using MinimalChatApplicationAPI.Dto;
 using MinimalChatApplicationAPI.Service;
+using MinimalChatApplicationAPI.Utils;
+using MinimalChatApplicationAPI.Utils.Helpers;
 
 namespace MinimalChatApplicationAPI.Controllers
 {
@@ -11,30 +13,30 @@ namespace MinimalChatApplicationAPI.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
-        private readonly IConfiguration _configuration;
-        public UserController(IUserService userService, IConfiguration configuration)
+        public UserController(IUserService userService)
         {
             _userService = userService;
-            _configuration = configuration;
         }
 
-        [HttpGet("/userList"), Authorize]
-        public async Task<IActionResult> GetUserListAsync()
+        [HttpGet("/users"), Authorize]
+        public async Task<IActionResult> GetUserListAsync([FromHeader] string authorization = "")
         {
+            var userID = authorization.GetJwtClaimValueFromKey(JWTClaimTypes.Id.ToString()) ?? "";
             try
             {
-                var res = await _userService.GetUsersAsync();
+                var res = await _userService.GetUsersAsync(userID);
                 return Ok(res);
             }
-            catch (Exception ex)
+            catch (UnauthorizedException ex)
             {
                 return BadRequest(ex.Message);
             }
         }
 
-        [HttpPost("/addUser"), Authorize]
+        [HttpPost("/register"), Authorize]
         public async Task<IActionResult> UpsertUserAsync(UserRegistrationDto userDto)
         {
+            //Guid userID = Guid.Parse(authorization.GetJwtClaimValueFromKey(JWTClaimTypes.Id.ToString()) ?? "");  ,[FromHeader] string authorization = ""
             try
             {
                 var res = await _userService.UpsertUser(userDto);
@@ -42,7 +44,7 @@ namespace MinimalChatApplicationAPI.Controllers
             }
             catch (ConflictException ex)
             {
-                return BadRequest(ex);
+                return Conflict(ex);
             }
         }
 
