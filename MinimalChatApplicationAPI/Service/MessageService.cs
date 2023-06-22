@@ -1,11 +1,9 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MinimalChatApplicationAPI.CustomExceptions;
 using MinimalChatApplicationAPI.Data;
 using MinimalChatApplicationAPI.Dto;
 using MinimalChatApplicationAPI.Model;
-using System.Linq;
 
 namespace MinimalChatApplicationAPI.Service
 {
@@ -40,11 +38,11 @@ namespace MinimalChatApplicationAPI.Service
 
         public async Task<ResMessageDto?> EditMessageAsync(string messageId, string textMesage, Guid senderId)
         {
-            var msgId = await _context.Messages.FirstOrDefaultAsync(x => x.MessageId.ToString() == messageId && x.SenderId == senderId);
-            if (msgId != null)
+            Message? message = await _context.Messages.FirstOrDefaultAsync(x => x.MessageId.ToString() == messageId && x.SenderId == senderId);
+            if (message != null)
             {
-                msgId.TextMessage = textMesage;
-                var res = _context.Messages.Update(msgId);
+                message.TextMessage = textMesage;
+                var res = _context.Messages.Update(message);
                 await _context.SaveChangesAsync();
                 var mapResMessage = _mapper.Map<ResMessageDto>(res.Entity);
                 return mapResMessage;
@@ -55,11 +53,10 @@ namespace MinimalChatApplicationAPI.Service
 
         public async Task<Message?> DeleteMessageAsync(string messageId, Guid senderId)
         {
-            var msgId = await _context.Messages.FirstOrDefaultAsync(x => x.MessageId.ToString() == messageId && x.SenderId == senderId);
-
-            if (msgId != null)
+            Message? message = await _context.Messages.FirstOrDefaultAsync(x => x.MessageId.ToString() == messageId && x.SenderId == senderId);
+            if (message != null)
             {
-                var res = _context.Messages.Remove(msgId);
+                var res = _context.Messages.Remove(message);
                 await _context.SaveChangesAsync();
                 return res.Entity;
             }
@@ -69,7 +66,9 @@ namespace MinimalChatApplicationAPI.Service
 
         public async Task<List<ResMessageDto>?> GetConversationHistoryAsync(MessageHistoryDto messageHistoryDto, Guid senderId, Guid receiverId)
         {
-            List<Message> msgList = await _context.Messages.Where(x => x.SenderId == senderId && x.ReceiverId == receiverId && (x.TimeStamp < messageHistoryDto.Before)).ToListAsync();
+            List<Message> msgList = await _context.Messages.Where(x => (
+            (x.SenderId == senderId && x.ReceiverId == receiverId) ||
+            (x.SenderId == receiverId && x.ReceiverId == senderId)) && (x.TimeStamp < messageHistoryDto.Before)).ToListAsync();
 
             if (msgList.Count == 0)
             {

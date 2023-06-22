@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MinimalChatApplicationAPI.Dto;
-using MinimalChatApplicationAPI.Utils.Helpers;
-using MinimalChatApplicationAPI.Utils;
 using MinimalChatApplicationAPI.Service;
 using MinimalChatApplicationAPI.CustomExceptions;
 
@@ -11,7 +9,7 @@ namespace MinimalChatApplicationAPI.Controllers
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    public class MessageController : ControllerBase
+    public class MessageController : BaseController
     {
         private readonly IMessageService _messageService;
         public MessageController(IMessageService messageService)
@@ -20,9 +18,9 @@ namespace MinimalChatApplicationAPI.Controllers
         }
 
         [HttpPost("/messages")]
-        public async Task<IActionResult> UpsertMessageAsync(MessageDto messageDto, [FromHeader] string authorization = "")
+        public async Task<IActionResult> UpsertMessageAsync(MessageDto messageDto)
         {
-            Guid senderId = Guid.Parse(authorization.GetJwtClaimValueFromKey(JWTClaimTypes.Id.ToString()) ?? "");
+            Guid senderId = GetUserId();
             try
             {
                 var res = await _messageService.UpsertMessageAsync(messageDto, senderId);
@@ -35,9 +33,9 @@ namespace MinimalChatApplicationAPI.Controllers
         }
 
         [HttpPut("/messages/{messageId}")]
-        public async Task<IActionResult> EditMessageAsync(string testMesage, string messageId = "{{messageId}}", [FromHeader] string authorization = "")
+        public async Task<IActionResult> EditMessageAsync(string testMesage, string messageId = "{{messageId}}")
         {
-            Guid senderId = Guid.Parse(authorization.GetJwtClaimValueFromKey(JWTClaimTypes.Id.ToString()) ?? "");
+            Guid senderId = GetUserId();
             try
             {
                 var res = await _messageService.EditMessageAsync(messageId, testMesage, senderId);
@@ -50,9 +48,9 @@ namespace MinimalChatApplicationAPI.Controllers
         }
 
         [HttpDelete("/messages/{messageId}")]
-        public async Task<IActionResult> DeleteMessageAsync(string messageId = "{{messageId}}", [FromHeader] string authorization = "")
+        public async Task<IActionResult> DeleteMessageAsync(string messageId = "{{messageId}}")
         {
-            Guid senderId = Guid.Parse(authorization.GetJwtClaimValueFromKey(JWTClaimTypes.Id.ToString()) ?? "");
+            Guid senderId = GetUserId();
             try
             {
                 var res = await _messageService.DeleteMessageAsync(messageId, senderId);
@@ -65,10 +63,9 @@ namespace MinimalChatApplicationAPI.Controllers
         }
 
         [HttpGet("/conversations/{userId}")]
-        public async Task<IActionResult> GetConversationHistoryAsync([FromQuery] MessageHistoryDto messageHistoryDto, string userId, [FromHeader] string authorization = "")
+        public async Task<IActionResult> GetConversationHistoryAsync([FromQuery] MessageHistoryDto messageHistoryDto, Guid receiverId)
         {
-            Guid senderId = Guid.Parse(authorization.GetJwtClaimValueFromKey(JWTClaimTypes.Id.ToString()) ?? "");
-            Guid receiverId = Guid.Parse(userId);
+            Guid senderId = GetUserId();
             try
             {
                 var res = await _messageService.GetConversationHistoryAsync(messageHistoryDto, senderId, receiverId);

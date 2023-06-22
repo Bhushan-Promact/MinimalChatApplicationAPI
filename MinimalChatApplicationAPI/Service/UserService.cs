@@ -26,7 +26,7 @@ namespace MinimalChatApplicationAPI.Service
             _configuration = configuration;
         }
 
-        public async Task<List<ResUserRegistrationDto>?> GetUsersAsync(string userID)
+        public async Task<List<ResUserRegistrationDto>?> GetUsersAsync(Guid userID)
         {
             User? user = await _context.Users.FindAsync(userID);
             if (user != null)
@@ -40,7 +40,7 @@ namespace MinimalChatApplicationAPI.Service
                 {
                     var userDto = _mapper.Map<List<ResUserRegistrationDto>>(userList);
                     return userDto;
-                }                
+                }
             }
             else
             {
@@ -48,7 +48,7 @@ namespace MinimalChatApplicationAPI.Service
             }
         }
 
-        public async Task<ResUserRegistrationDto?> UpsertUser(UserRegistrationDto userDto)
+        public async Task<ResUserRegistrationDto> UpsertUser(UserRegistrationDto userDto)
         {
             var isEmailExist = await _context.Users.FirstOrDefaultAsync(x => x.Email == userDto.Email);
             if (isEmailExist == null)

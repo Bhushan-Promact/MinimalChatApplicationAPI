@@ -3,14 +3,12 @@ using Microsoft.AspNetCore.Mvc;
 using MinimalChatApplicationAPI.CustomExceptions;
 using MinimalChatApplicationAPI.Dto;
 using MinimalChatApplicationAPI.Service;
-using MinimalChatApplicationAPI.Utils;
-using MinimalChatApplicationAPI.Utils.Helpers;
 
 namespace MinimalChatApplicationAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserController : ControllerBase
+    public class UserController : BaseController
     {
         private readonly IUserService _userService;
         public UserController(IUserService userService)
@@ -19,9 +17,9 @@ namespace MinimalChatApplicationAPI.Controllers
         }
 
         [HttpGet("/users"), Authorize]
-        public async Task<IActionResult> GetUserListAsync([FromHeader] string authorization = "")
+        public async Task<IActionResult> GetUserListAsync()
         {
-            var userID = authorization.GetJwtClaimValueFromKey(JWTClaimTypes.Id.ToString()) ?? "";
+            Guid userID = GetUserId();
             try
             {
                 var res = await _userService.GetUsersAsync(userID);
@@ -33,10 +31,9 @@ namespace MinimalChatApplicationAPI.Controllers
             }
         }
 
-        [HttpPost("/register"), Authorize]
+        [HttpPost("/register")]
         public async Task<IActionResult> UpsertUserAsync(UserRegistrationDto userDto)
         {
-            //Guid userID = Guid.Parse(authorization.GetJwtClaimValueFromKey(JWTClaimTypes.Id.ToString()) ?? "");  ,[FromHeader] string authorization = ""
             try
             {
                 var res = await _userService.UpsertUser(userDto);

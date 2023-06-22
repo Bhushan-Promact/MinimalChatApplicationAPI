@@ -1,6 +1,4 @@
-﻿using MinimalChatApplicationAPI.Model;
-
-namespace MinimalChatApplicationAPI.Dto
+﻿namespace MinimalChatApplicationAPI.Dto
 {
     public class ResMessageDto
     {
