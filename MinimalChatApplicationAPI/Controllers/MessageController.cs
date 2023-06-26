@@ -63,12 +63,12 @@ namespace MinimalChatApplicationAPI.Controllers
         }
 
         [HttpGet("/conversations/{userId}")]
-        public async Task<IActionResult> GetConversationHistoryAsync([FromQuery] MessageHistoryDto messageHistoryDto, Guid receiverId)
-        {
+        public async Task<IActionResult> GetConversationHistoryAsync([FromQuery]MessageHistoryDto messageHistoryDto, Guid userId)
+        {   
             Guid senderId = GetUserId();
             try
             {
-                var res = await _messageService.GetConversationHistoryAsync(messageHistoryDto, senderId, receiverId);
+                var res = await _messageService.GetConversationHistoryAsync(messageHistoryDto, senderId, userId);
                 return Ok(res);
             }
             catch (NotFoundException ex)

@@ -4,6 +4,7 @@ using MinimalChatApplicationAPI.CustomExceptions;
 using MinimalChatApplicationAPI.Data;
 using MinimalChatApplicationAPI.Dto;
 using MinimalChatApplicationAPI.Model;
+using System.Diagnostics;
 
 namespace MinimalChatApplicationAPI.Service
 {
@@ -66,28 +67,30 @@ namespace MinimalChatApplicationAPI.Service
 
         public async Task<List<ResMessageDto>?> GetConversationHistoryAsync(MessageHistoryDto messageHistoryDto, Guid senderId, Guid receiverId)
         {
-            List<Message> msgList = await _context.Messages.Where(x => (
-            (x.SenderId == senderId && x.ReceiverId == receiverId) ||
-            (x.SenderId == receiverId && x.ReceiverId == senderId)) && (x.TimeStamp < messageHistoryDto.Before)).ToListAsync();
+            List<Message> msgList;
+
+            if (messageHistoryDto.Sort.ToLower() == "asc")
+            {
+                msgList = await _context.Messages.Where(x => ((x.SenderId == senderId && x.ReceiverId == receiverId) ||
+                (x.SenderId == receiverId && x.ReceiverId == senderId)) && (x.TimeStamp < messageHistoryDto.Before)).OrderBy(x => x.TimeStamp)
+                .Take(messageHistoryDto.Count).ToListAsync();
+            }
+            else if (messageHistoryDto.Sort.ToLower() == "desc")
+            {
+                msgList = await _context.Messages.Where(x => ((x.SenderId == senderId && x.ReceiverId == receiverId) ||
+                (x.SenderId == receiverId && x.ReceiverId == senderId)) && (x.TimeStamp < messageHistoryDto.Before)).OrderByDescending(x => x.TimeStamp)
+                .Take(messageHistoryDto.Count).ToListAsync();
+            }
+            else
+            {
+                throw new BadDataException("Invalid request parameters");
+            }
 
             if (msgList.Count == 0)
             {
                 throw new NotFoundException("User or conversation not found");
             }
-            else
-            {
-                if (messageHistoryDto.Sort.ToLower() == "asc")
-                {
-                    var res = msgList.OrderBy(x => x.TimeStamp).Take(messageHistoryDto.Count);
-                    return _mapper.Map<List<ResMessageDto>>(res);
-                }
-                else if (messageHistoryDto.Sort.ToLower() == "desc")
-                {
-                    var res = msgList.OrderByDescending(x => x.TimeStamp).Take(messageHistoryDto.Count);
-                    return _mapper.Map<List<ResMessageDto>>(res);
-                }
-                throw new BadDataException("Invalid request parameters");
-            }
+            return _mapper.Map<List<ResMessageDto>>(msgList);
         }
     }
 }

@@ -31,7 +31,7 @@ namespace MinimalChatApplicationAPI.Service
             User? user = await _context.Users.FindAsync(userID);
             if (user != null)
             {
-                List<User> userList = await _context.Users.ToListAsync();
+                List<User> userList = await _context.Users.Where(x => x.UserId != userID).ToListAsync();
                 if (userList.IsListNullOrEmpty())
                 {
                     throw new NoContentException("List is Empty");
