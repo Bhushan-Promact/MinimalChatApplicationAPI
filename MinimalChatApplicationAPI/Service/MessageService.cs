@@ -4,7 +4,6 @@ using MinimalChatApplicationAPI.CustomExceptions;
 using MinimalChatApplicationAPI.Data;
 using MinimalChatApplicationAPI.Dto;
 using MinimalChatApplicationAPI.Model;
-using System.Diagnostics;
 
 namespace MinimalChatApplicationAPI.Service
 {
@@ -39,14 +38,19 @@ namespace MinimalChatApplicationAPI.Service
 
         public async Task<ResMessageDto?> EditMessageAsync(string messageId, string textMesage, Guid senderId)
         {
-            Message? message = await _context.Messages.FirstOrDefaultAsync(x => x.MessageId.ToString() == messageId && x.SenderId == senderId);
+            Message? message = await _context.Messages.FirstOrDefaultAsync(x => x.MessageId.ToString() == messageId);
             if (message != null)
             {
-                message.TextMessage = textMesage;
-                var res = _context.Messages.Update(message);
-                await _context.SaveChangesAsync();
-                var mapResMessage = _mapper.Map<ResMessageDto>(res.Entity);
-                return mapResMessage;
+                if (message.SenderId == senderId)
+                {
+                    message.TextMessage = textMesage;
+                    var res = _context.Messages.Update(message);
+                    await _context.SaveChangesAsync();
+                    var mapResMessage = _mapper.Map<ResMessageDto>(res.Entity);
+                    return mapResMessage;
+                }
+                else
+                    throw new UnauthorizedException("Unauthorized Access");
             }
             else
                 throw new NotFoundException("Message not found");
@@ -54,12 +58,17 @@ namespace MinimalChatApplicationAPI.Service
 
         public async Task<Message?> DeleteMessageAsync(string messageId, Guid senderId)
         {
-            Message? message = await _context.Messages.FirstOrDefaultAsync(x => x.MessageId.ToString() == messageId && x.SenderId == senderId);
+            Message? message = await _context.Messages.FirstOrDefaultAsync(x => x.MessageId.ToString() == messageId);
             if (message != null)
             {
-                var res = _context.Messages.Remove(message);
-                await _context.SaveChangesAsync();
-                return res.Entity;
+                if (message.SenderId == senderId)
+                {
+                    var res = _context.Messages.Remove(message);
+                    await _context.SaveChangesAsync();
+                    return res.Entity;
+                }
+                else
+                    throw new UnauthorizedException("Unauthorized Access");
             }
             else
                 throw new NotFoundException("Message not found");

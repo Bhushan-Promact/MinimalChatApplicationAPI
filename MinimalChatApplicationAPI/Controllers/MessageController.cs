@@ -41,6 +41,10 @@ namespace MinimalChatApplicationAPI.Controllers
                 var res = await _messageService.EditMessageAsync(messageId, testMesage, senderId);
                 return Ok(res);
             }
+            catch (UnauthorizedException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
             catch (NotFoundException ex)
             {
                 return NotFound(ex.Message);
@@ -56,6 +60,10 @@ namespace MinimalChatApplicationAPI.Controllers
                 var res = await _messageService.DeleteMessageAsync(messageId, senderId);
                 return Ok("Message deleted successfully");
             }
+            catch (UnauthorizedException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
             catch (NotFoundException ex)
             {
                 return NotFound(ex.Message);
@@ -63,8 +71,8 @@ namespace MinimalChatApplicationAPI.Controllers
         }
 
         [HttpGet("/conversations/{userId}")]
-        public async Task<IActionResult> GetConversationHistoryAsync([FromQuery]MessageHistoryDto messageHistoryDto, Guid userId)
-        {   
+        public async Task<IActionResult> GetConversationHistoryAsync([FromQuery] MessageHistoryDto messageHistoryDto, Guid userId)
+        {
             Guid senderId = GetUserId();
             try
             {
